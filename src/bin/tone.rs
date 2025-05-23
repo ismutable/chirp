@@ -1,12 +1,12 @@
-use std::{f32::consts::PI, i16};
 use hound;
+use std::{f32::consts::PI, i16};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // constants
     const SAMPLE_RATE: u32 = 48_000;
-    const FREQUENCY: f32 = 22_500.0; 
+    const FREQUENCY: f32 = 22_500.0;
     const DURATION_SECS: f32 = 1.0;
-     
+
     // create wave specification
     let spec = hound::WavSpec {
         channels: 1,
