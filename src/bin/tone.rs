@@ -21,7 +21,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // write to file
     println!("Writing tone.wav");
-    let mut writer = hound::WavWriter::create("tone.wav", spec)?;
+    let mut writer = hound::WavWriter::create("data/tone.wav", spec)?;
     for n in 0..sample_count {
         let t = n as f32 / SAMPLE_RATE as f32;
         let sample = (amplitude * (2.0 * PI * FREQUENCY * t).sin()) as i16;
