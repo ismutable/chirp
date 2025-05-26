@@ -45,59 +45,60 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .collect(),
     );
 
+    let is_connected = Arc::new(Mutex::new(false));
+
     // create async process closure
-    let rec_cb = Arc::clone(&recorded);
-    let table_cb = Arc::clone(&sine_table);
-    let phase_cb = Arc::new(Mutex::new(0usize));
-    let process = move |_: &Client, ps: &ProcessScope| -> Control {
-        let out_buf = out_port.as_mut_slice(ps);
-        let in_buf = in_port.as_slice(ps);
-        let mut rec = rec_cb.lock().unwrap();
-        let mut ph = phase_cb.lock().unwrap();
+    let process = {
+        let rec_cb = Arc::clone(&recorded);
+        let table_cb = Arc::clone(&sine_table);
+        let phase_cb = Arc::new(Mutex::new(0usize));
+        let is_connected = Arc::clone(&is_connected);
+        move |client: &Client, ps: &ProcessScope| -> Control {
+            // connect to system ports (run-once)
+            if !*is_connected.lock().unwrap() {
+                let playback_names: Vec<_> = client
+                    .ports(Some("system"), None, jack::PortFlags::IS_INPUT)
+                    .into_iter()
+                    .collect();
+                let capture_names: Vec<_> = client
+                    .ports(None, None, jack::PortFlags::IS_OUTPUT)
+                    .into_iter()
+                    .collect();
+                if let Some(play_name) = playback_names.get(0) {
+                    if let Some(play_port) = client.port_by_name(play_name) {
+                        client.connect_ports(&out_port, &play_port).unwrap();
+                    }
+                }
+                if let Some(capt_name) = capture_names.get(0) {
+                    if let Some(capt_port) = client.port_by_name(capt_name) {
+                        client.connect_ports(&capt_port, &in_port).unwrap();
+                    }
+                }
+            }
+            *is_connected.lock().unwrap() = true;
 
-        for (i, out_sample) in out_buf.iter_mut().enumerate() {
-            // write sample from sine table
-            let idx = *ph;
-            let s = table_cb[idx];
-            *out_sample = s;
-            // capture recorded sample
-            rec.push(in_buf[i]);
-            // advance phase (wrapping)
-            *ph = (idx + 1) % table_cb.len();
+            // duplex callback
+            let out_buf = out_port.as_mut_slice(ps);
+            let in_buf = in_port.as_slice(ps);
+            let mut rec = rec_cb.lock().unwrap();
+            let mut ph = phase_cb.lock().unwrap();
+            for (i, out_sample) in out_buf.iter_mut().enumerate() {
+                // write sample from sine table
+                let idx = *ph;
+                let s = table_cb[idx];
+                *out_sample = s;
+                // capture recorded sample
+                rec.push(in_buf[i]);
+                // advance phase (wrapping)
+                *ph = (idx + 1) % table_cb.len();
+            }
+
+            Control::Continue
         }
-
-        Control::Continue
     };
 
     // activate jack client
     let active = client.activate_async((), ClosureProcessHandler::new(process))?;
-        // auto-connect to ports
-    let playback_names: Vec<_> = active
-        .as_client()
-        .ports(Some("system"), None, jack::PortFlags::IS_INPUT)
-        .into_iter()
-        .collect();
-    let capture_names: Vec<_> = active
-        .as_client()
-        .ports(None, None, jack::PortFlags::IS_OUTPUT)
-        .into_iter()
-        .collect();
-
-    println!("playback_names: {:?}", &playback_names);
-    
-    if let Some(play_name) = playback_names.get(0) {
-        if let Some(play_port) = active.as_client().port_by_name(play_name) {
-            active.as_client().connect_ports(&out_port, &play_port)?;
-        }
-    }
-
-    if let Some(capt_name) = capture_names.get(0) {
-        if let Some(capt_port) = active.as_client().port_by_name(capt_name) {
-            active.as_client().connect_ports(&capt_port, &in_port)?;
-        }
-    }
-
-
     println!("Running full-duplex for {} seconds...", DURATION_SECS);
     thread::sleep(Duration::from_secs(DURATION_SECS as u64));
     drop(active);
