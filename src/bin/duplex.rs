@@ -6,8 +6,9 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
 
-const DURATION_SECS: usize = 10;
-const FREQUENCY: f32 = 22_500.0;
+const DURATION_SECS: usize = 1;
+const FREQUENCY: f32 = 19_200.0;
+// experimenting with 96 kHz sample rate
 
 fn normalize_wave(values: &mut [f32]) {
     let &min = values
@@ -36,14 +37,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // build thread safe sine table abstractions and recording buffer
     let sample_rate = client.sample_rate();
+    println!("sample_rate: {}", sample_rate);
     let recorded = Arc::new(Mutex::new(Vec::<f32>::with_capacity(
         DURATION_SECS * sample_rate,
     )));
+    let period_samples = (sample_rate as f32 / FREQUENCY).round() as usize;
+    println!("period_samples: {}", period_samples);
     let sine_table: Arc<Vec<f32>> = Arc::new(
-        (0..sample_rate)
+        (0..period_samples)
             .map(|n| ((2.0 * PI * FREQUENCY * (n as f32 / sample_rate as f32)).sin()))
             .collect(),
     );
+    println!("sine_table: {:?}", &sine_table);
 
     let is_connected = Arc::new(Mutex::new(false));
 
