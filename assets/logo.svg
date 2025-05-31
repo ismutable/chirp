@@ -16,7 +16,7 @@
     /* Dark mode override */
     @media (prefers-color-scheme: dark) {
       path { fill: #fff; }
-      rect { fill: #000::; }
+      rect { fill: #000; }
     }
   </style>
 
