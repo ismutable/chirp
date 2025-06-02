@@ -1,0 +1,12 @@
+[package]
+name = "liquid-dsp-sys"
+version = "0.1.0"
+authors = ["daniel@mutable.blog"]
+license = "MIT"
+
+[build-dependencies]
+bindgen = "0.71.1"
+
+[dependencies]
+libc = "0.2.151"
+

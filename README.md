@@ -5,4 +5,4 @@
 </div>
 <p></p>
 
-**Chirp** is a chat app that uses your computer's existing sound system to _ultrasonically_ communicate with friends. 
+**Chirp** is a delightful chat app that uses your computer's built-in audio stack to enable _ultrasonic_ messaging to nearby friends. 
