@@ -5,4 +5,13 @@
 </div>
 <p></p>
 
-**Chirp** is a delightful chat app that uses your computer's built-in audio stack to enable _ultrasonic_ messaging to nearby friends. 
+### About
+
+**Chirp** is a delightful chat app that uses your computer's built-in audio to _ultrasonic_ message friends nearby. 
+
+### Dependencies
+
+__Ubuntu/Debian__
+```bash
+sudo apt update && sudo apt install -y clang libclang-dev libliquid-dev libasound2-dev libjack-jackd2-dev pkg-config
+```
