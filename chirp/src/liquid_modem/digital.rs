@@ -1,4 +1,4 @@
-use crate::modem::{
+use crate::liquid_modem::{
     complex::Complex,
     error::{ModemError, ModemResult},
 };
@@ -37,12 +37,7 @@ impl Drop for DigitalModem {
 mod tests {
     use super::*;
     #[test]
-    fn test_digital_modem_try_new() {
-        let modem = DigitalModem::try_new();
-        assert!(
-            modem.is_ok(),
-            "Failed to create DigitalModem: {:?}",
-            modem.err()
-        );
+    fn test_digital_modem_new() {
+        let modem = DigitalModem::new();
     }
 }
