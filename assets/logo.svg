@@ -25,7 +25,7 @@
      inkscape:document-units="mm"
      showgrid="false"
      inkscape:zoom="9.9531696"
-     inkscape:cx="39.233733"
+     inkscape:cx="38.882086"
      inkscape:cy="28.583859"
      inkscape:window-width="1920"
      inkscape:window-height="1018"
@@ -33,6 +33,16 @@
      inkscape:window-y="0"
      inkscape:window-maximized="1"
      inkscape:current-layer="layer1" />
+  <style
+     id="style61">
+    /* Light mode default */
+    path { fill: #000; }
+    /* Dark mode override */
+    @media (prefers-color-scheme: dark) {
+      path { fill: #fff; }
+      rect { fill: #000; }
+    }
+  </style>
   <defs
      id="defs2" />
   <g
@@ -41,7 +51,8 @@
     <g
        aria-label="Chirp"
        id="text113"
-       style="font-size:11.2889px;font-family:Pacifico;-inkscape-font-specification:Pacifico;stroke-width:0.264583">
+       style="font-size:11.2889px;font-family:Pacifico;-inkscape-font-specification:Pacifico;stroke-width:0.264583"
+       transform="matrix(0.95,0,0,0.95,0.748351,0.50965697)">
       <path
          id="path312"
          style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-opacity:1"
