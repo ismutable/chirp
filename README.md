@@ -7,7 +7,7 @@
 
 ### About
 
-**Chirp** is a delightful chat app that uses your computer's built-in audio to _ultrasonic_ message friends nearby. 
+**Chirp** is a delightful chat app that uses your computer's audio to _ultrasonically_ message nearby friends. 
 
 ### Dependencies
 
