@@ -2,6 +2,18 @@ use std::{f32::consts::PI, io::Cursor};
 use bitstream_io::{BitReader, BitRead, BigEndian};
 
 
+ 
+type Hz = u32;
+
+struct WaveformBuilder {
+    sample_freq: Hz,
+    carrier_freq: Hz, 
+    signal_high: Vec<i16>,
+    signal_low: Vec<i16>
+}
+
+
+
 struct LazyWaveform{
     sample_rate: u32,
     carrier_freq: u32,
