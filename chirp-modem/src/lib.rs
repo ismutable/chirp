@@ -9,12 +9,13 @@ use bitvec::{
 
 pub type Hz = u16;
 
-pub const BIT_REPEATS: u8 = 16;
-pub const CARRIER_STEPS: u8 = 13;
-pub const CARRIER_SAMPLES: u8 = 32;
-pub const CARRIER_FREQ: Hz = 19_500;
-pub const SAMPLE_RATE: Hz = 48_000;
+pub const BIT_REPEATS: u8 = 16; // lines up w/ zero crossing of sine wave
+pub const CARRIER_STEPS: u8 = 13; // prime ensures every element using mod
+pub const CARRIER_SAMPLES: u8 = 32; // rational divisor based on prime and sample_rate/carrier freq ratio
+pub const CARRIER_FREQ: Hz = 19_500; // low-end ultrasonic, meets nyquist criteria with sample rate
+pub const SAMPLE_RATE: Hz = 48_000; // average stock sound card sampling rate:w
 
+// look-up table to avoid sine computation in-the-loop
 pub static CARRIER_SIGNAL: LazyLock<Vec<i16>> = LazyLock::new(|| {
     let mut carrier = Vec::with_capacity(CARRIER_SAMPLES as usize);
     for i in 0..CARRIER_SAMPLES {
@@ -26,6 +27,7 @@ pub static CARRIER_SIGNAL: LazyLock<Vec<i16>> = LazyLock::new(|| {
     carrier
 });
 
+/// zero-copy iterator signal modulator
 pub struct WaveGenerator<'a> {
     one: i16,
     zero: i16,
@@ -63,13 +65,5 @@ impl<'a> Iterator for WaveGenerator<'a> {
         } else {
             Some(self.zero * value)
         }
-    }
-}
-
-pub struct WaveBuilder {}
-
-impl WaveBuilder {
-    pub fn generate(data: &[u8]) -> WaveGenerator<'_> {
-        WaveGenerator::new(data)
     }
 }
