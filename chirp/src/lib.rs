@@ -1,6 +1,7 @@
 use std::f32::consts::TAU;
 
 const SAMPLES: usize = 32;
+const CURSOR_STEP: usize = 13;
 const DEFAULT_HI_GAIN: f32 = 0.9;
 const DEFAULT_LO_GAIN: f32 = 0.1;
 
@@ -15,9 +16,9 @@ impl Default for BitModulator {
         let mut unit = [0.0; SAMPLES];
         let mut hi = [0.0; SAMPLES];
         let mut lo = [0.0; SAMPLES];
-        let step = TAU / SAMPLES as f32;
+        let phase_step = TAU / SAMPLES as f32;
         for (idx, sample) in unit.iter_mut().enumerate() {
-            *sample = f32::sin(idx as f32 * step);
+            *sample = f32::sin(idx as f32 * phase_step);
             hi[idx] = DEFAULT_HI_GAIN * (*sample);
             lo[idx] = DEFAULT_LO_GAIN * (*sample);
         }
@@ -26,7 +27,10 @@ impl Default for BitModulator {
 }
 
 impl BitModulator {
-    fn hi_gain(&mut self, gain: f32) -> &mut Self {
+    pub fn hi_gain(&mut self, gain: f32) -> &mut Self {
+        for (s, u) in self.hi.iter_mut().zip(self.unit.iter()) {
+            *s = gain * u;
+        }
         self
     }
 }
