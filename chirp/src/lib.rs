@@ -21,10 +21,10 @@ impl Default for BitModulator {
         let mut hi = [0.0; FRAME];
         let mut lo = [0.0; FRAME];
         let phase_step = TAU / FRAME as f32;
-        for (idx, val) in unit.iter_mut().enumerate() {
-            *val = f32::sin(idx as f32 * phase_step);
-            hi[idx] = DEFAULT_HI_GAIN * (*val);
-            lo[idx] = DEFAULT_LO_GAIN * (*val);
+        for (idx, sample) in unit.iter_mut().enumerate() {
+            *sample = f32::sin(idx as f32 * phase_step);
+            hi[idx] = DEFAULT_HI_GAIN * (*sample);
+            lo[idx] = DEFAULT_LO_GAIN * (*sample);
         }
         Self {
             unit,
@@ -55,5 +55,27 @@ impl BitModulator {
         self.cursor = 0;
         self.sample = 0;
         self
+    }
+}
+
+impl Iterator for BitModulator {
+    type Item = f32;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.sample == SAMPLES {
+            return None;
+        }
+
+        let lookup = if self.bit {
+            self.hi.as_slice()
+        } else {
+            self.lo.as_slice()
+        };
+
+        let sample = lookup[self.cursor];
+        self.cursor = (self.cursor + STEP) % FRAME;
+        self.sample += 1;
+
+        Some(sample)
     }
 }
