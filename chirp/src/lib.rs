@@ -6,6 +6,7 @@ const SAMPLES: usize = FRAME;
 const DEFAULT_HI_GAIN: f32 = 0.9;
 const DEFAULT_LO_GAIN: f32 = 0.1;
 
+#[derive(Debug, Clone)]
 pub struct BitModulator {
     unit: [f32; FRAME],
     hi: [f32; FRAME],
@@ -38,19 +39,26 @@ impl Default for BitModulator {
 }
 
 impl BitModulator {
-    pub fn hi_gain(&mut self, gain: f32) -> &mut Self {
+    pub fn new(bit: bool) -> Self {
+        Self {
+            bit,
+            ..Default::default()
+        }
+    }
+
+    pub fn hi_gain(mut self, gain: f32) -> Self {
         for (s, u) in self.hi.iter_mut().zip(self.unit.iter()) {
             *s = gain * u;
         }
         self
     }
-    pub fn lo_gain(&mut self, gain: f32) -> &mut Self {
+    pub fn lo_gain(mut self, gain: f32) -> Self {
         for (s, u) in self.lo.iter_mut().zip(self.unit.iter()) {
             *s = gain * u;
         }
         self
     }
-    pub fn bit(&mut self, bit: bool) -> &mut Self {
+    pub fn bit(mut self, bit: bool) -> Self {
         self.bit = bit;
         self.cursor = 0;
         self.sample = 0;
@@ -77,5 +85,17 @@ impl Iterator for BitModulator {
         self.sample += 1;
 
         Some(sample)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    /// test peak of sine curve is equal to hi gain
+    #[test]
+    fn hi_gain() {
+        const GAIN: f32 = 0.5;
+        assert_eq!(GAIN, BitModulator::new(true).hi_gain(GAIN).nth(8).unwrap());
     }
 }
