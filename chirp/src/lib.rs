@@ -32,7 +32,7 @@ impl Default for BitModulator {
 }
 
 impl BitModulator {
-    pub fn signal(&self, bit: bool) -> &[f32] {
+    pub fn modulate(&self, bit: bool) -> &[f32] {
         if bit {
             &self.hi
         } else {
@@ -93,8 +93,9 @@ impl<'b> WaveWriter<'b> {
 
     pub fn write(&mut self, reader: &mut WaveReader) {
         let data = reader.read(self.remaining());
-        self.buffer.copy_from_slice(data);
-        self.pos += data.len();
+        let stop = self.pos + data.len();
+        self.buffer[self.pos..stop].copy_from_slice(data);
+        self.pos = stop;
     }
 
     pub fn batch_write<'c, 'm>(&mut self, readers: &mut ReaderIterMut<'c, 'm>) {
@@ -110,5 +111,72 @@ impl<'b> WaveWriter<'b> {
             // write has vacancy and reader has data
             self.write(reader)
         }
+    }
+}
+
+#[cfg(test)]
+mod modulate {
+    use super::*;
+
+    #[test]
+    fn equal_length() {
+        let mut dst = [0.0; FRAME];
+        let mut writer = WaveWriter::from(dst.as_mut_slice());
+        let bit = BitModulator::default();
+        let mut reader = WaveReader::from(bit.modulate(true));
+        writer.write(&mut reader);
+        assert_eq!(0, reader.remaining(), "Reader should have zero remaining.");
+        assert_eq!(0, writer.remaining(), "Writer should have zero remaining.");
+        assert_eq!(
+            dst.as_slice(),
+            bit.modulate(true),
+            "Dst should be identical to Src"
+        );
+    }
+
+    #[test]
+    fn larger_output() {
+        let mut dst = [0.0; FRAME + 1];
+        let mut writer = WaveWriter::from(dst.as_mut_slice());
+        let bit = BitModulator::default();
+        let mut reader = WaveReader::from(bit.modulate(true));
+        writer.write(&mut reader);
+        assert_eq!(0, reader.remaining(), "Reader should have zero remaining.");
+        assert_eq!(1, writer.remaining(), "Writer should have one remaining.");
+        assert_eq!(
+            &dst[..dst.len() - 1], // up to but not including last element
+            bit.modulate(true),
+            "Dst should match Src except for last element."
+        );
+        assert_eq!(
+            0.0,
+            dst[dst.len() - 1], // get last element
+            "Last Dst element should equal default initialized value."
+        );
+    }
+
+    #[test]
+    fn larger_input() {
+        let mut dst = [0.0; FRAME - 1];
+        let mut writer = WaveWriter::from(dst.as_mut_slice());
+        let bit = BitModulator::default();
+        let lookup = bit.modulate(true);
+        let mut reader = WaveReader::from(lookup);
+        writer.write(&mut reader);
+        assert_eq!(1, reader.remaining(), "Reader should have one remaining.");
+        assert_eq!(0, writer.remaining(), "Writer should have zero remaining.");
+        assert_eq!(
+            dst.as_slice(),
+            &lookup[..lookup.len() - 1],
+            "Dst should be full and contain all but last element of Src."
+        )
+    }
+
+    #[test]
+    fn batch_write_multiple() {
+        let bit = BitModulator::default()
+        let init_reader = || WaveReader::from(bit.modulate(true));
+        let readers = &[init_reader(), init_reader()];
+        // TODO: left off here, testing batch writes over various length combinations
     }
 }
