@@ -35,70 +35,74 @@ impl BitModulator {
     }
 }
 
-struct WaveReader<'a> {
-    data: &'a [f32],
+struct WaveReader<'m> {
+    buffer: &'m [f32],
     pos: usize,
 }
 
-impl<'a> WaveReader<'a> {
+impl<'m> WaveReader<'m> {
+    #[inline]
     pub fn remaining(&self) -> usize {
-        self.data.len() - self.pos
+        self.buffer.len() - self.pos
     }
 
     pub fn read(&mut self, size: usize) -> &[f32] {
         if size > self.remaining() {
-            let output = &self.data[self.pos..];
-            self.pos = self.data.len();
+            let output = &self.buffer[self.pos..];
+            self.pos = self.buffer.len();
             output
         } else {
             let stop = self.pos + size;
-            let output = &self.data[self.pos..stop];
+            let output = &self.buffer[self.pos..stop];
             self.pos = stop;
             output
         }
     }
 }
 
-impl<'a> From<&'a [f32]> for WaveReader<'a> {
-    fn from(data: &'a [f32]) -> Self {
-        WaveReader { data, pos: 0 }
+impl<'m> From<&'m [f32]> for WaveReader<'m> {
+    fn from(buffer: &'m [f32]) -> Self {
+        WaveReader { buffer, pos: 0 }
     }
 }
 
-struct WaveWriter<'a> {
-    buffer: &'a mut [f32],
+struct WaveWriter<'m> {
+    buffer: &'m mut [f32],
     pos: usize,
 }
 
-impl<'a> From<&'a mut [f32]> for WaveWriter<'a> {
-    fn from(buffer: &'a mut [f32]) -> Self {
+impl<'m> From<&'m mut [f32]> for WaveWriter<'m> {
+    fn from(buffer: &'m mut [f32]) -> Self {
         WaveWriter { buffer, pos: 0 }
     }
 }
 
-enum Status {
-    Full,
-    Remaining(usize),
-}
+type ReaderIterMut<'c, 'b> = std::slice::IterMut<'c, WaveReader<'b>>;
 
-impl<'a> WaveWriter<'a> {
+impl<'m> WaveWriter<'m> {
+    #[inline]
     pub fn remaining(&self) -> usize {
         self.buffer.len() - self.pos
     }
 
-    pub fn write(&mut self, reader: WaveReader) -> Status {
-        // handle reader empty case
-        if reader.remaining() == 0 {
-            return Status::Remaining(self.remaining());
-        };
+    pub fn write(&mut self, reader: &mut WaveReader) {
+        let data = reader.read(self.remaining());
+        self.buffer.copy_from_slice(data);
+        self.pos += data.len();
+    }
 
-        // handle buffer full case
-        if self.remaining() == 0 {
-            return Status::Full;
-        };
-
-        if self.remaining() > reader.remaining {}
-
-        Status::Remaining(self.remaining())
+    pub fn batch_write<'c, 'b>(&mut self, readers: &mut ReaderIterMut<'c, 'b>) {
+        for reader in readers {
+            // writer buffer full
+            if self.remaining() == 0 {
+                break;
+            }
+            // current reader empty
+            if reader.remaining() == 0 {
+                continue;
+            }
+            // write has vacancy and reader has data
+            self.write(reader)
+        }
     }
 }
