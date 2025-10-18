@@ -1,5 +1,11 @@
 use std::f32::consts::TAU;
 
+/// lifetimes
+///
+/// 'm: modulator lookup
+/// 'b: output buffer
+/// 'c: iterator container
+
 const FRAME: usize = 32;
 const STEP: usize = 13;
 const HI_GAIN: f32 = 1.0;
@@ -35,7 +41,7 @@ impl BitModulator {
     }
 }
 
-struct WaveReader<'m> {
+pub struct WaveReader<'m> {
     buffer: &'m [f32],
     pos: usize,
 }
@@ -66,20 +72,20 @@ impl<'m> From<&'m [f32]> for WaveReader<'m> {
     }
 }
 
-struct WaveWriter<'m> {
-    buffer: &'m mut [f32],
+pub struct WaveWriter<'b> {
+    buffer: &'b mut [f32],
     pos: usize,
 }
 
-impl<'m> From<&'m mut [f32]> for WaveWriter<'m> {
-    fn from(buffer: &'m mut [f32]) -> Self {
+impl<'b> From<&'b mut [f32]> for WaveWriter<'b> {
+    fn from(buffer: &'b mut [f32]) -> Self {
         WaveWriter { buffer, pos: 0 }
     }
 }
 
-type ReaderIterMut<'c, 'b> = std::slice::IterMut<'c, WaveReader<'b>>;
+type ReaderIterMut<'c, 'm> = std::slice::IterMut<'c, WaveReader<'m>>;
 
-impl<'m> WaveWriter<'m> {
+impl<'b> WaveWriter<'b> {
     #[inline]
     pub fn remaining(&self) -> usize {
         self.buffer.len() - self.pos
@@ -91,7 +97,7 @@ impl<'m> WaveWriter<'m> {
         self.pos += data.len();
     }
 
-    pub fn batch_write<'c, 'b>(&mut self, readers: &mut ReaderIterMut<'c, 'b>) {
+    pub fn batch_write<'c, 'm>(&mut self, readers: &mut ReaderIterMut<'c, 'm>) {
         for reader in readers {
             // writer buffer full
             if self.remaining() == 0 {
