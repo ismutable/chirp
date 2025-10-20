@@ -208,6 +208,17 @@ mod modulate {
 
     #[test]
     fn batch_write_larger_input() {
-        todo!();
+        let mut dst = [0.0; (2 * FRAME) - 1];
+        let mut writer = WaveWriter::from(dst.as_mut_slice());
+        let bit = BitModulator::default();
+        let factory = || WaveReader::from(bit.modulate(true));
+        let readers = &mut [factory(), factory()];
+        writer.batch_write(readers.as_mut_slice().iter_mut());
+        assert_eq!(0, writer.remaining(), "Writer should have zero remaining.");
+        assert_eq!(
+            1,
+            readers[1].remaining(),
+            "Last reader should have one remaining."
+        );
     }
 }
