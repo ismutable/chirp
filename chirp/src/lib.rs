@@ -1,3 +1,5 @@
+pub mod byte_iter;
+
 use std::f32::consts::TAU;
 
 /// lifetimes
