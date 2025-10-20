@@ -98,7 +98,7 @@ impl<'b> WaveWriter<'b> {
         self.pos = stop;
     }
 
-    pub fn batch_write<'c, 'm>(&mut self, readers: &mut ReaderIterMut<'c, 'm>) {
+    pub fn batch_write<'c, 'm>(&mut self, readers: ReaderIterMut<'c, 'm>) {
         for reader in readers {
             // writer buffer full
             if self.remaining() == 0 {
@@ -119,7 +119,7 @@ mod modulate {
     use super::*;
 
     #[test]
-    fn equal_length() {
+    fn write_equal_length() {
         let mut dst = [0.0; FRAME];
         let mut writer = WaveWriter::from(dst.as_mut_slice());
         let bit = BitModulator::default();
@@ -135,7 +135,7 @@ mod modulate {
     }
 
     #[test]
-    fn larger_output() {
+    fn write_larger_output() {
         let mut dst = [0.0; FRAME + 1];
         let mut writer = WaveWriter::from(dst.as_mut_slice());
         let bit = BitModulator::default();
@@ -156,7 +156,7 @@ mod modulate {
     }
 
     #[test]
-    fn larger_input() {
+    fn write_larger_input() {
         let mut dst = [0.0; FRAME - 1];
         let mut writer = WaveWriter::from(dst.as_mut_slice());
         let bit = BitModulator::default();
@@ -173,10 +173,41 @@ mod modulate {
     }
 
     #[test]
-    fn batch_write_multiple() {
-        let bit = BitModulator::default()
-        let init_reader = || WaveReader::from(bit.modulate(true));
-        let readers = &[init_reader(), init_reader()];
-        // TODO: left off here, testing batch writes over various length combinations
+    fn batch_write_multiple_equal_length() {
+        let bit = BitModulator::default();
+        let factory = || WaveReader::from(bit.modulate(true));
+        let readers = &mut [factory(), factory()];
+        let mut dst = [0.0; FRAME * 2];
+        let mut writer = WaveWriter::from(dst.as_mut_slice());
+        writer.batch_write(readers.as_mut_slice().iter_mut());
+        assert!(
+            readers[0].remaining() == 0 && readers[1].remaining() == 0,
+            "Both readers should have zero remaining."
+        );
+        assert_eq!(0, writer.remaining(), "Writer should have zero remaining.");
+        for idx in 0..FRAME {
+            assert_eq!(
+                dst[idx],
+                dst[idx + FRAME],
+                "Values should be idential between writes."
+            )
+        }
+    }
+
+    #[test]
+    fn batch_write_larger_output() {
+        let mut dst = [0.0; (2 * FRAME) + 1];
+        let mut writer = WaveWriter::from(dst.as_mut_slice());
+        let bit = BitModulator::default();
+        let factory = || WaveReader::from(bit.modulate(true));
+        let readers = &mut [factory(), factory()];
+        writer.batch_write(readers.as_mut_slice().iter_mut());
+        assert_eq!(1, writer.remaining(), "Writer should have one remaining.");
+        assert_eq!(0.0, dst[dst.len() - 1], "Final element should remain zero.");
+    }
+
+    #[test]
+    fn batch_write_larger_input() {
+        todo!();
     }
 }
