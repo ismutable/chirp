@@ -1,4 +1,4 @@
-pub mod byte_iter;
+pub mod expand;
 
 use std::f32::consts::TAU;
 
