@@ -1,4 +1,6 @@
+pub mod error;
 pub mod expand;
+pub mod message;
 
 use std::f32::consts::TAU;
 
