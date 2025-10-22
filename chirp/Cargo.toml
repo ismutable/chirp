@@ -8,3 +8,4 @@ thiserror = "2"
 
 [dev-dependencies]
 rstest = "0.26"
+plotters = "0.3"
