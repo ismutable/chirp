@@ -37,11 +37,7 @@ impl Default for BitModulator {
 
 impl BitModulator {
     pub fn modulate(&self, bit: bool) -> &[f32] {
-        if bit {
-            &self.hi
-        } else {
-            &self.lo
-        }
+        if bit { &self.hi } else { &self.lo }
     }
 }
 

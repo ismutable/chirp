@@ -1,6 +1,6 @@
 use crate::error::ChirpError;
 use crate::expand::expand_lsb;
-use crate::{BitModulator, WaveReader, WaveWriter, FRAME};
+use crate::{BitModulator, FRAME, WaveReader, WaveWriter};
 
 trait WaveLen {
     fn wave_len(&self) -> usize;
