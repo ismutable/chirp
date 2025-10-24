@@ -2,9 +2,14 @@ use anyhow::Context;
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use cpal::{BufferSize, ChannelCount, SampleFormat, SampleRate, StreamConfig};
 
+use chirp::{message::modulate, BitModulator};
+
+use std::time::Duration;
+
 const SAMPLE_FORMAT: SampleFormat = SampleFormat::F32;
 const SAMPLE_RATE: SampleRate = SampleRate(48_000);
 const CHANNELS: ChannelCount = 1;
+const SECONDS: Duration = Duration::from_secs(3);
 
 fn main() -> anyhow::Result<()> {
     // use default hardware
@@ -27,9 +32,23 @@ fn main() -> anyhow::Result<()> {
         buffer_size: BufferSize::Default,
     };
 
+    let msg = [0b10101010; 1 << 14];
+    let bit = BitModulator::default();
+    let reader = todo!();
+    let writer = todo!();
     // configure stream
-    // TODO: impl data_callback using chirp lib
-    let stream = device.build_output_stream(&config, todo!(), |e| panic!("Audio hardware refused config."), None)
+    let stream = device.build_output_stream(
+        &config,
+        move |data: &mut [f32], _: &cpal::OutputCallbackInfo| {
+            // react to stream events and read or write stream data here.
+        },
+        |_| panic!("Audio hardware refused config."),
+        None,
+    )?;
+
+    stream.play()?;
+
+    std::thread::sleep(SECONDS);
 
     Ok(())
 }
