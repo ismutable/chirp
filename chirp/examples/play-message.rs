@@ -1,8 +1,10 @@
 use anyhow::Context;
+use chirp::expand::expand_lsb;
+use chirp::{WaveReader, WaveWriter};
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use cpal::{BufferSize, ChannelCount, SampleFormat, SampleRate, StreamConfig};
 
-use chirp::{message::modulate, BitModulator};
+use chirp::BitModulator;
 
 use std::time::Duration;
 
@@ -32,15 +34,28 @@ fn main() -> anyhow::Result<()> {
         buffer_size: BufferSize::Default,
     };
 
-    let msg = [0b10101010; 1 << 14];
+    // message to wave
+    let msg = [0b10101010; 1 << 12];
     let bit = BitModulator::default();
-    let reader = todo!();
-    let writer = todo!();
+    let wave: Vec<_> = msg
+        .into_iter()
+        .flat_map(expand_lsb)
+        .flat_map(|b| bit.modulate(b))
+        .cloned()
+        .collect();
+
+    // TODO: need to make reader variant that uses Arc so it can be Send + 'static
+    let mut reader = WaveReader::from(wave.as_slice());
+
     // configure stream
     let stream = device.build_output_stream(
         &config,
         move |data: &mut [f32], _: &cpal::OutputCallbackInfo| {
-            // react to stream events and read or write stream data here.
+            let mut writer = WaveWriter::from(data);
+            //writer.write(&mut reader);
+            // if reader.remaining() == 0 {
+            //     reader.rewind();
+            // }
         },
         |_| panic!("Audio hardware refused config."),
         None,
@@ -49,6 +64,5 @@ fn main() -> anyhow::Result<()> {
     stream.play()?;
 
     std::thread::sleep(SECONDS);
-
     Ok(())
 }
