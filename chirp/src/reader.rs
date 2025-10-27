@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 pub trait WaveReader {
     fn remaining(&self) -> usize;
     fn read(&mut self, size: usize) -> &[f32];
@@ -5,8 +7,24 @@ pub trait WaveReader {
 }
 
 // private generic implementations
-fn remaining<B: AsRef<[f32]>>(buffer: B, cursor: usize) -> usize {
+#[inline]
+fn remaining<B: AsRef<[f32]> + ?Sized>(buffer: &B, cursor: usize) -> usize {
     buffer.as_ref().len() - cursor
+}
+
+fn read<'b, B: AsRef<[f32]> + ?Sized>(buffer: &'b B, cursor: &mut usize, size: usize) -> &'b [f32] {
+    let buffer = buffer.as_ref();
+
+    if size > remaining(buffer, *cursor) {
+        let output = &buffer[*cursor..];
+        *cursor = buffer.len();
+        output
+    } else {
+        let stop = *cursor + size;
+        let output = &buffer[*cursor..stop];
+        *cursor = stop;
+        output
+    }
 }
 
 pub struct RefWaveReader<'m> {
