@@ -126,6 +126,7 @@ dependencies = [
  "cpal",
  "plotters",
  "rstest",
+ "rtrb",
  "thiserror 2.0.17",
 ]
 
@@ -994,6 +995,12 @@ dependencies = [
  "syn",
  "unicode-ident",
 ]
+
+[[package]]
+name = "rtrb"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ad8388ea1a9e0ea807e442e8263a699e7edcb320ecbcd21b4fa8ff859acce3ba"
 
 [[package]]
 name = "rustc_version"
