@@ -1,10 +1,17 @@
+pub mod closure;
 pub mod error;
 pub mod expand;
+pub mod iter;
+pub mod lookup;
 pub mod message;
 pub mod reader;
+pub mod simple;
+pub mod swap;
 pub mod sync;
 
 use std::f32::consts::TAU;
+
+use iter::{PacketIter, SerialIter};
 
 /// lifetimes
 ///
@@ -14,13 +21,14 @@ use std::f32::consts::TAU;
 
 const FRAME: usize = 32;
 const STEP: usize = 13;
-const HI_GAIN: f32 = 1.0;
+const HI_GAIN: f32 = 0.9;
 const LO_GAIN: f32 = 0.1;
 
 #[derive(Debug, Clone)]
 pub struct BitModulator {
     hi: [f32; FRAME],
     lo: [f32; FRAME],
+    pos: usize,
 }
 
 impl Default for BitModulator {
@@ -33,7 +41,7 @@ impl Default for BitModulator {
             hi[idx] = HI_GAIN * sample;
             lo[idx] = LO_GAIN * sample;
         }
-        Self { hi, lo }
+        Self { hi, lo, pos: 0 }
     }
 }
 
@@ -45,7 +53,7 @@ impl BitModulator {
             &self.lo
         }
     }
-    pub fn samples(&self) -> usize {
+    pub const fn samples() -> usize {
         FRAME
     }
 }
