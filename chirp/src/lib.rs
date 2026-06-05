@@ -1,17 +1,17 @@
 pub mod closure;
+pub mod cursor;
 pub mod error;
 pub mod expand;
 pub mod iter;
 pub mod lookup;
 pub mod message;
+pub mod modulator;
 pub mod reader;
 pub mod simple;
 pub mod swap;
 pub mod sync;
 
 use std::f32::consts::TAU;
-
-use iter::{PacketIter, SerialIter};
 
 /// lifetimes
 ///

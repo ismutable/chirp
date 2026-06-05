@@ -10,6 +10,12 @@ impl ByteIter {
     pub fn new(byte: u8) -> Self {
         Self { byte, pos: 0 }
     }
+    pub fn empty() -> Self {
+        Self {
+            byte: 0,
+            pos: u8::BITS as u8,
+        }
+    }
 }
 
 impl Iterator for ByteIter {
@@ -48,12 +54,8 @@ impl<'a> ByteSliceIter<'a> {
             ByteIter::new(*byte)
         } else {
             // guard against empty array being passed
-            // should never happen, prevents nested options
-            let mut bits = ByteIter::new(0);
-            for _ in 0..u8::BITS {
-                bits.next();
-            }
-            bits
+            // prevents nested options
+            ByteIter::empty()
         };
 
         Self { bytes, bits }
@@ -85,3 +87,16 @@ impl<'a> Iterator for ByteSliceIter<'a> {
 }
 
 impl<'a> ExactSizeIterator for ByteSliceIter<'a> {}
+
+trait Cursor {
+    fn remaining(&self) - usize;
+}
+
+struct WriteCursor<'a> {
+    buffer: &'a mut u8,
+    pos: usize,
+}
+
+struct ReadCursor<'a> {
+    
+}

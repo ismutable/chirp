@@ -33,11 +33,11 @@ impl Default for SymbolTable {
 impl SymbolTable {
     const SAMPLES: usize = SAMPLES;
 
-    fn one(&self) -> &[f32] {
+    pub fn one(&self) -> &[f32] {
         &self.one
     }
 
-    fn zero(&self) -> &[f32] {
+    pub fn zero(&self) -> &[f32] {
         &self.zero
     }
 }
